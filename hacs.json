@@ -1,0 +1,7 @@
+{
+  "name": "header-position-card",
+  "content_in_root": true,
+  "render_readme": true,
+  "filename": "header-position-card.js",
+  "homeassistant": "2025.2.0"
+}
