@@ -3,8 +3,8 @@
 [![GitHub release](https://img.shields.io/github/release/xBourner/header-position-card?style=for-the-badge)](https://github.com/xBourner/header-position-card/releases/)
 [![GitHub issues](https://img.shields.io/github/issues/xBourner/header-position-card?style=for-the-badge)](https://github.com/xBourner/header-position-card/issues)
 
-<a href="https://www.buymeacoffee.com/bourner"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=☕&slug=bourner&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff" /></a>
-<a href="https://www.paypal.me/gibgas123"><img src="https://github.com/xBourner/status-card/blob/main/.github/paypal.png" alt="PayPal" style="width:235px; height:50px;"></a>
+<a href="https://www.buymeacoffee.com/bourner"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=☕&slug=bourner&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff" style="width:175px; height:40px;" /></a>
+<a href="https://www.paypal.me/gibgas123"><img src="https://github.com/xBourner/status-card/blob/main/.github/paypal.png" alt="PayPal" style="width:175px; height:40px;"></a>
 
 # Header Position Card
 This Card allows you to change the layout of the Header for every dashboard.
