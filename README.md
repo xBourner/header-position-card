@@ -19,19 +19,25 @@ By default the card isn't shown on your dashboard. Its only visible when the edi
 
 ![image](https://github.com/user-attachments/assets/516b1723-a7c3-487b-8c86-761e27504d8b)
 
+Should work on iOS devices with and without a Home Button.
+
 
 ## Settings
+Choose the device option to change the location of the navbar for the selected options (like the visibiliy option for cards in HA)
+You can select multiple options. If the option is selected the navbar will be at the bottom for the selected option.
 
-All settings are optional. The card should work without setting any parameters in yaml or via GUI. 
+![image](https://github.com/user-attachments/assets/b9345779-673a-49be-8885-b088b95e2ea7)
+
 
 ```yaml
 type: custom:header-position-card
-Style: None | All Devices | Mobile Only
+Style:
+  - mobile
+  - tablet
+  - desktop
 ```
 
-None = Navbar stays on top <br>
-All Devices = Navbar shown at bottom on every device <br>
-Mobile Only = Navbar shown at bottom only on mobile devices (smartphones) <br>
+
 
 
 # Feedback
