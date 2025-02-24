@@ -1,20 +1,57 @@
 class HeaderPosition {
   constructor() {
     this.queryParams = new URLSearchParams(window.location.search);
-    this.config = { Style: "None" }; // Standardmäßig deaktiviert
+    this.config = { Style: [] };
   }
 
   setConfig(config) {
-    this.config = config || { Style: "None" };
+    const newConfig = { ...config };
+
+    if (newConfig.Style === undefined) {
+      newConfig.Style = [];
+    } else {
+      if (Array.isArray(newConfig.Style)) {
+        newConfig.Style = newConfig.Style.filter(
+          s => s && s.toLowerCase() !== "none"
+        );
+      } else {
+        newConfig.Style = newConfig.Style === "None" ? [] : [newConfig.Style];
+      }
+    }
+    this.config = newConfig;
     this.applyChanges();
   }
+  
 
   applyChanges() {
-    if (this.config.Style === "None") {
+    const styles = this.config.Style;
+    if (!styles || styles.length === 0) {
       this.resetHeader();
       return;
     }
-    if (this.config.Style === "All Devices" || (this.config.Style === "Mobile Only" && window.innerWidth <= 700)) {
+
+    const width = window.innerWidth;
+    let applyHeader = false;
+    for (const bp of styles) {
+      switch(bp.toLowerCase()) {
+        case "mobile":
+          if (width <= 767) applyHeader = true;
+          break;
+        case "tablet":
+          if (width >= 768 && width <= 1023) applyHeader = true;
+          break;
+        case "desktop":
+          if (width >= 1024 && width <= 1279) applyHeader = true;
+          break;
+        case "wide":
+          if (width >= 1280) applyHeader = true;
+          break;
+        default:
+          break;
+      }
+    }
+
+    if (applyHeader) {
       this.applyHeaderPositionChanges();
       this.applyPaddingChanges();
     } else {
@@ -42,17 +79,8 @@ class HeaderPosition {
       const isIosWebViewOrStandalone =
         isIos && (navigator.standalone || /Mobile/.test(ua));
       if (isIosWebViewOrStandalone) {
-        appHeader.style.setProperty("padding-bottom", "25px", "important");
-
-        // set nav icons size ratio to 1, for a more iOS style feeling
-        const appHeaderTabs = appHeader.querySelectorAll("paper-tab");
-        if (appHeaderTabs && appHeaderTabs.length) {
-          appHeaderTabs.forEach((tab) =>
-            tab.style.setProperty("padding", "0 16px", "important")
-          );
-        }
+        appHeader.style.setProperty("padding-bottom", "env(safe-area-inset-bottom)", "important");
       }
-
     }
   }
 
@@ -72,7 +100,6 @@ class HeaderPosition {
       }
     }
   }
-
 
   resetHeader() {
     let appHeader = this.huiRootElement?.querySelector(".header");
@@ -102,19 +129,18 @@ class HeaderPositionCard extends HTMLElement {
       return;
     }
     
-    this.style.display = ""; // Sicherstellen, dass die Karte sichtbar ist, falls `edit=1` vorhanden ist
+    this.style.display = ""; 
     if (!this.content) {
       this.innerHTML = "<ha-card><div class='card-content'>Header Position Card</div></ha-card>";
     }
   }
   
-
   static getConfigElement() {
     return document.createElement("header-position-editor");
   }
 
   static getStubConfig() {
-    return { Style: "None" };
+    return { Style: [] };
   }
 }
 
@@ -143,11 +169,25 @@ class HeaderPositionEditor extends HTMLElement {
     this._updateForm();
   }
 
-  _schema() {
-    return [
-      { name: "Style", selector: { select: { options: ["None", "All Devices", "Mobile Only"] } } }
-    ];
-  }
+_schema() {
+  const breakpoints = ["mobile", "tablet", "desktop", "wide"];
+  const options = breakpoints.map(bp => ({
+    value: bp,
+    label: computeLabel({ name: bp }, this._hass)
+  }));
+
+  return [
+    {
+      name: "Style",
+      selector: {
+        select: {
+          multiple: true,
+          options: options
+        }
+      }
+    }
+  ];
+}
 
   _updateForm() {
     if (!this._hass || !this._config) return;
@@ -172,5 +212,33 @@ class HeaderPositionEditor extends HTMLElement {
     this.dispatchEvent(event);
   }
 }
+
+function computeLabel(schema, hass) {
+  const validBreakpoints = ["mobile", "tablet", "desktop", "wide"];
+
+  if (validBreakpoints.includes(schema.name)) {
+    const baseKey = "ui.panel.lovelace.editor.condition-editor.condition.screen.breakpoints_list";
+    const label = hass.localize(`${baseKey}.${schema.name}`);
+    
+    let breakpointInfo = "";
+    switch (schema.name) {
+      case "tablet":
+        breakpointInfo = " (min: 768px)";
+        break;
+      case "desktop":
+        breakpointInfo = " (min: 1024px)";
+        break;
+      case "wide":
+        breakpointInfo = " (min: 1280px)";
+        break;
+      default:
+        break;
+    }
+    return label + breakpointInfo;
+  }
+  
+  return schema.name;
+}
+
 
 customElements.define("header-position-editor", HeaderPositionEditor);
