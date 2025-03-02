@@ -18,11 +18,12 @@ class HeaderPosition {
         newConfig.Style = newConfig.Style === "None" ? [] : [newConfig.Style];
       }
     }
+    // Falls ein Hintergrundfarbwert übergeben wurde, speichern wir ihn in config.color:
+    // (Ansonsten bleibt er undefined.)
     this.config = newConfig;
     this.applyChanges();
   }
   
-
   applyChanges() {
     const styles = this.config.Style;
     if (!styles || styles.length === 0) {
@@ -79,7 +80,20 @@ class HeaderPosition {
       const isIosWebViewOrStandalone =
         isIos && (navigator.standalone || /Mobile/.test(ua));
       if (isIosWebViewOrStandalone) {
-        appHeader.style.setProperty("padding-bottom", "env(safe-area-inset-bottom)", "important");
+        // Hier wird das Padding dynamisch über den Safe Area inset gesetzt:
+        appHeader.style.setProperty("padding-bottom", "calc(env(safe-area-inset-bottom) * 0.5)", "important");
+      }
+
+      const haTabs = appHeader?.querySelector(".toolbar > ha-tabs");
+      if (!haTabs) return;  // Falls ha-tabs nicht existiert, beenden
+
+      // Überschreibe die Farbe der Ink Bar (z. B. weiß)
+      haTabs.style.setProperty("--paper-tabs-selection-bar-color", "white");
+
+      // Greife in den Shadow-DOM des ha-tabs-Elements und passe die Position der Ink Bar an:
+      const selectionBar = haTabs.shadowRoot?.querySelector("#tabsContainer > #tabsContent > #selectionBar");
+      if (selectionBar) {
+        selectionBar.style.setProperty("top", "0");
       }
     }
   }
@@ -100,6 +114,7 @@ class HeaderPosition {
       }
     }
   }
+ 
 
   resetHeader() {
     let appHeader = this.huiRootElement?.querySelector(".header");
@@ -107,6 +122,7 @@ class HeaderPosition {
     if (appHeader) {
       appHeader.style.removeProperty("top");
       appHeader.style.removeProperty("bottom");
+      appHeader.style.removeProperty("background-color");
     }
     if (contentContainer) {
       contentContainer.style.removeProperty("padding-bottom");
@@ -125,11 +141,11 @@ class HeaderPositionCard extends HTMLElement {
   set hass(hass) {
     const isEditMode = new URLSearchParams(window.location.search).get("edit") === "1";
     if (!isEditMode) {
-      this.style.display = "None";
+      this.style.display = "none";
       return;
     }
     
-    this.style.display = ""; 
+    this.style.display = "";
     if (!this.content) {
       this.innerHTML = "<ha-card><div class='card-content'>Header Position Card</div></ha-card>";
     }
@@ -151,6 +167,7 @@ window.customCards.push({
   name: "Header Position Card",
   description: "A card that allows toggling the dashboard header position (per view)",
 });
+
 
 class HeaderPositionEditor extends HTMLElement {
   constructor() {
@@ -185,7 +202,7 @@ _schema() {
           options: options
         }
       }
-    }
+    }     
   ];
 }
 
