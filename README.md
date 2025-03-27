@@ -19,7 +19,8 @@ Simply add the header-position-card to onw of your dashboards and choose the mod
 
 By default the card isn't shown on your dashboard. Its only visible when the editor is active. Choose the mode and the header will be shown at the bottom on all devices.
 
-![image](https://github.com/user-attachments/assets/516b1723-a7c3-487b-8c86-761e27504d8b)
+![image](https://github.com/user-attachments/assets/d47ad28b-4520-4c54-b8ab-1881b72c8f32)
+
 
 Should work on iOS devices with and without a Home Button.
 
@@ -37,6 +38,7 @@ Style:
   - mobile
   - tablet
   - desktop
+  - wide
 ```
 
 
