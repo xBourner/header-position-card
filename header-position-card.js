@@ -12,7 +12,7 @@ class HeaderPosition {
     } else {
       if (Array.isArray(newConfig.Style)) {
         newConfig.Style = newConfig.Style.filter(
-          s => s && s.toLowerCase() !== "none"
+          (s) => s && s.toLowerCase() !== "none"
         );
       } else {
         newConfig.Style = newConfig.Style === "None" ? [] : [newConfig.Style];
@@ -23,7 +23,7 @@ class HeaderPosition {
     this.config = newConfig;
     this.applyChanges();
   }
-  
+
   applyChanges() {
     const styles = this.config.Style;
     if (!styles || styles.length === 0) {
@@ -34,7 +34,7 @@ class HeaderPosition {
     const width = window.innerWidth;
     let applyHeader = false;
     for (const bp of styles) {
-      switch(bp.toLowerCase()) {
+      switch (bp.toLowerCase()) {
         case "mobile":
           if (width <= 767) applyHeader = true;
           break;
@@ -62,38 +62,55 @@ class HeaderPosition {
 
   get huiRootElement() {
     return document
-      .querySelector("home-assistant")?.shadowRoot
-      ?.querySelector("home-assistant-main")?.shadowRoot
-      ?.querySelector("ha-panel-lovelace")?.shadowRoot
-      ?.querySelector("hui-root")?.shadowRoot;
+      .querySelector("home-assistant")
+      ?.shadowRoot?.querySelector("home-assistant-main")
+      ?.shadowRoot?.querySelector("ha-panel-lovelace")
+      ?.shadowRoot?.querySelector("hui-root")?.shadowRoot;
   }
 
   applyHeaderPositionChanges() {
     let appHeader = this.huiRootElement?.querySelector(".header");
 
-    if (appHeader && (appHeader.style.top !== 'auto' || appHeader.style.bottom !== '0px')) {
-      appHeader.style.setProperty('top', 'auto', 'important');
-      appHeader.style.setProperty('bottom', '0px', 'important');
+    if (
+      appHeader &&
+      (appHeader.style.top !== "auto" || appHeader.style.bottom !== "0px")
+    ) {
+      appHeader.style.setProperty("top", "auto", "important");
+      appHeader.style.setProperty("bottom", "0px", "important");
 
       const ua = navigator.userAgent;
       const isIos = /iPad|iPhone|iPod/.test(ua);
       const isIosWebViewOrStandalone =
         isIos && (navigator.standalone || /Mobile/.test(ua));
       if (isIosWebViewOrStandalone) {
-        // Hier wird das Padding dynamisch über den Safe Area inset gesetzt:
-        appHeader.style.setProperty("padding-bottom", "calc(env(safe-area-inset-bottom) * 0.5)", "important");
+        appHeader.style.setProperty(
+          "padding-bottom",
+          "calc(env(safe-area-inset-bottom) * 0.5)",
+          "important"
+        );
       }
 
-      const haTabs = appHeader?.querySelector(".toolbar > ha-tabs");
-      if (!haTabs) return;  // Falls ha-tabs nicht existiert, beenden
+      // ha-tabs behandeln (alte Version)
+      const haTabs = appHeader.querySelector(".toolbar > ha-tabs");
+      if (haTabs) {
+        const selectionBar = haTabs.shadowRoot?.querySelector(
+          "#tabsContainer > #tabsContent > #selectionBar"
+        );
+        if (selectionBar) {
+          selectionBar.style.setProperty("top", "0");
+        }
+      }
 
-      // Überschreibe die Farbe der Ink Bar (z. B. weiß)
-      haTabs.style.setProperty("--paper-tabs-selection-bar-color", "white");
-
-      // Greife in den Shadow-DOM des ha-tabs-Elements und passe die Position der Ink Bar an:
-      const selectionBar = haTabs.shadowRoot?.querySelector("#tabsContainer > #tabsContent > #selectionBar");
-      if (selectionBar) {
-        selectionBar.style.setProperty("top", "0");
+      // sl-tab-group behandeln (neue Version)
+      const slTabGroup = appHeader.querySelector(".toolbar > sl-tab-group");
+      if (slTabGroup) {
+        const indicator = slTabGroup.shadowRoot?.querySelector(
+          '[part="active-tab-indicator"]'
+        );
+        if (indicator) {
+          indicator.style.setProperty("top", "0");
+          indicator.style.setProperty("bottom", "unset");
+        }
       }
     }
   }
@@ -101,24 +118,26 @@ class HeaderPosition {
   applyPaddingChanges() {
     let contentContainer = this.huiRootElement?.querySelector("#view");
 
-    const topPadding = 'env(safe-area-inset-top)';
-    const bottomPadding = 'calc(var(--header-height) + env(safe-area-inset-bottom))';
+    const topPadding = "env(safe-area-inset-top)";
+    const bottomPadding =
+      "calc(var(--header-height) + env(safe-area-inset-bottom))";
 
     if (contentContainer) {
       if (
         contentContainer.style.top !== topPadding ||
         contentContainer.style.paddingBottom !== bottomPadding
       ) {
-        contentContainer.style.setProperty('padding-top', topPadding);
-        contentContainer.style.setProperty('padding-bottom', bottomPadding);
+        contentContainer.style.setProperty("padding-top", topPadding);
+        contentContainer.style.setProperty("padding-bottom", bottomPadding);
       }
     }
   }
- 
 
   resetHeader() {
     let appHeader = this.huiRootElement?.querySelector(".header");
-    let contentContainer = this.huiRootElement?.querySelector(".toolbar") || this.huiRootElement?.querySelector("#view");
+    let contentContainer =
+      this.huiRootElement?.querySelector(".toolbar") ||
+      this.huiRootElement?.querySelector("#view");
     if (appHeader) {
       appHeader.style.removeProperty("top");
       appHeader.style.removeProperty("bottom");
@@ -139,18 +158,20 @@ class HeaderPositionCard extends HTMLElement {
   }
 
   set hass(hass) {
-    const isEditMode = new URLSearchParams(window.location.search).get("edit") === "1";
+    const isEditMode =
+      new URLSearchParams(window.location.search).get("edit") === "1";
     if (!isEditMode) {
       this.style.display = "none";
       return;
     }
-    
+
     this.style.display = "";
     if (!this.content) {
-      this.innerHTML = "<ha-card><div class='card-content'>Header Position Card</div></ha-card>";
+      this.innerHTML =
+        "<ha-card><div class='card-content'>Header Position Card</div></ha-card>";
     }
   }
-  
+
   static getConfigElement() {
     return document.createElement("header-position-editor");
   }
@@ -165,9 +186,9 @@ window.customCards = window.customCards || [];
 window.customCards.push({
   type: "header-position-card",
   name: "Header Position Card",
-  description: "A card that allows toggling the dashboard header position (per view)",
+  description:
+    "A card that allows toggling the dashboard header position (per view)",
 });
-
 
 class HeaderPositionEditor extends HTMLElement {
   constructor() {
@@ -186,25 +207,25 @@ class HeaderPositionEditor extends HTMLElement {
     this._updateForm();
   }
 
-_schema() {
-  const breakpoints = ["mobile", "tablet", "desktop", "wide"];
-  const options = breakpoints.map(bp => ({
-    value: bp,
-    label: computeLabel({ name: bp }, this._hass)
-  }));
+  _schema() {
+    const breakpoints = ["mobile", "tablet", "desktop", "wide"];
+    const options = breakpoints.map((bp) => ({
+      value: bp,
+      label: computeLabel({ name: bp }, this._hass),
+    }));
 
-  return [
-    {
-      name: "Style",
-      selector: {
-        select: {
-          multiple: true,
-          options: options
-        }
-      }
-    }     
-  ];
-}
+    return [
+      {
+        name: "Style",
+        selector: {
+          select: {
+            multiple: true,
+            options: options,
+          },
+        },
+      },
+    ];
+  }
 
   _updateForm() {
     if (!this._hass || !this._config) return;
@@ -225,7 +246,11 @@ _schema() {
   }
 
   _configChanged(e) {
-    const event = new CustomEvent("config-changed", { detail: { config: e.detail.value }, bubbles: true, composed: true });
+    const event = new CustomEvent("config-changed", {
+      detail: { config: e.detail.value },
+      bubbles: true,
+      composed: true,
+    });
     this.dispatchEvent(event);
   }
 }
@@ -234,9 +259,10 @@ function computeLabel(schema, hass) {
   const validBreakpoints = ["mobile", "tablet", "desktop", "wide"];
 
   if (validBreakpoints.includes(schema.name)) {
-    const baseKey = "ui.panel.lovelace.editor.condition-editor.condition.screen.breakpoints_list";
+    const baseKey =
+      "ui.panel.lovelace.editor.condition-editor.condition.screen.breakpoints_list";
     const label = hass.localize(`${baseKey}.${schema.name}`);
-    
+
     let breakpointInfo = "";
     switch (schema.name) {
       case "tablet":
@@ -253,9 +279,8 @@ function computeLabel(schema, hass) {
     }
     return label + breakpointInfo;
   }
-  
+
   return schema.name;
 }
-
 
 customElements.define("header-position-editor", HeaderPositionEditor);
