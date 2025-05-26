@@ -47,6 +47,8 @@ class HeaderPosition {
         case "wide":
           if (width >= 1280) applyHeader = true;
           break;
+        case "custom":
+          if (width >= this.config.custom_width) applyHeader = true;
         default:
           break;
       }
@@ -207,8 +209,8 @@ class HeaderPositionEditor extends HTMLElement {
     this._updateForm();
   }
 
-  _schema() {
-    const breakpoints = ["mobile", "tablet", "desktop", "wide"];
+  _schema(breakpoint) {
+    const breakpoints = ["mobile", "tablet", "desktop", "wide", "custom"];
     const options = breakpoints.map((bp) => ({
       value: bp,
       label: computeLabel({ name: bp }, this._hass),
@@ -224,6 +226,22 @@ class HeaderPositionEditor extends HTMLElement {
           },
         },
       },
+
+      ...(Array.isArray(breakpoint) && breakpoint.includes("custom")
+        ? [
+            {
+              name: "custom_width",
+              selector: {
+                number: {
+                  min: 0,
+                  max: 10000,
+                  unit_of_measurement: "px",
+                  mode: "box",
+                },
+              },
+            },
+          ]
+        : []),
     ];
   }
 
@@ -233,12 +251,12 @@ class HeaderPositionEditor extends HTMLElement {
     if (form) {
       form.hass = this._hass;
       form.data = this._config;
-      form.schema = this._schema();
+      form.schema = this._schema(this._config.Style);
     } else {
       form = document.createElement("ha-form");
       form.hass = this._hass;
       form.data = this._config;
-      form.schema = this._schema();
+      form.schema = this._schema(this._config.Style);
       form.addEventListener("value-changed", this._configChanged.bind(this));
       this.innerHTML = "";
       this.appendChild(form);
@@ -278,6 +296,20 @@ function computeLabel(schema, hass) {
         break;
     }
     return label + breakpointInfo;
+  }
+
+  if (schema.name === "custom") {
+    return "Custom";
+  }
+
+  if (schema.name === "custom_width") {
+    return (
+      "Custom" +
+      " " +
+      hass.localize(
+        "ui.panel.lovelace.editor.condition-editor.condition.screen.min"
+      )
+    );
   }
 
   return schema.name;
