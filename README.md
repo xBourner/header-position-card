@@ -1,3 +1,6 @@
+
+[![(https://hacs.xyz)](https://img.shields.io/badge/hacs-default-orange.svg?style=for-the-badge)](https://github.com/hacs/integration)
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/xBourner/header-position-card/total?style=for-the-badge)
 [![stars - header-position-card](https://img.shields.io/github/stars/xBourner/header-position-card?style=for-the-badge)](https://github.com/xBourner/header-position-card)
 [![forks - header-position-card](https://img.shields.io/github/forks/xBourner/header-position-card?style=for-the-badge)](https://github.com/xBourner/header-position-card)
 [![GitHub release](https://img.shields.io/github/release/xBourner/header-position-card?style=for-the-badge)](https://github.com/xBourner/header-position-card/releases/)
