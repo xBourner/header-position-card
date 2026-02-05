@@ -168,11 +168,7 @@ class HeaderPosition {
       if (element.style.top !== "auto" || element.style.bottom !== "0px") {
           element.style.setProperty("top", "auto", "important");
           element.style.setProperty("bottom", "0px", "important");
-          element.style.setProperty("position", "absolute", "important");
-          
-           if (window.getComputedStyle(element).position === 'static') {
-                element.style.setProperty("position", "fixed", "important");
-           }
+          element.style.setProperty("position", "fixed", "important");
 
           const ua = navigator.userAgent;
           const isIos = /iPad|iPhone|iPod/.test(ua);
