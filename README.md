@@ -16,13 +16,16 @@ This Card allows you to change the layout of the Header for every dashboard.
 Shoutout to https://github.com/javawizard/ha-navbar-position who came up with this idea.
 I applied some changes to make it even easier to work with this.
 
-Simply add the header-position-card to onw of your dashboards and choose the mode (none, all devices or mobile only) to cahnge the position of the header.
+Simply add the header-position-card to onw of your dashboards and choose the mode (mobile, dekstop, wide etc.) to cahnge the position of the header.
+There's also a global mode which will change the position of the navbar on all dashboards.
 
 ## Features
 
 By default the card isn't shown on your dashboard. Its only visible when the editor is active. Choose the mode and the header will be shown at the bottom on all devices.
+You can enable the position to only change the postion on the dashboard its placed or you can change position globally.
 
-![image](https://github.com/user-attachments/assets/d47ad28b-4520-4c54-b8ab-1881b72c8f32)
+<img width="515" height="617" alt="image" src="https://github.com/user-attachments/assets/eaa2125e-48d7-41f4-b198-29ff4e0858c7" />
+
 
 
 Should work on iOS devices with and without a Home Button.
