@@ -24,7 +24,9 @@ There's also a global mode which will change the position of the navbar on all d
 By default the card isn't shown on your dashboard. Its only visible when the editor is active. Choose the mode and the header will be shown at the bottom on all devices.
 You can enable the position to only change the postion on the dashboard its placed or you can change position globally.
 
-<img width="515" height="617" alt="image" src="https://github.com/user-attachments/assets/eaa2125e-48d7-41f4-b198-29ff4e0858c7" />
+<img width="428" height="69" alt="image" src="https://github.com/user-attachments/assets/4d18ce72-8791-4a8a-99b4-b978b5f5afe2" />
+
+<img width="422" height="63" alt="image" src="https://github.com/user-attachments/assets/d1347392-0844-457e-9f36-f177f411e76c" />
 
 
 
@@ -35,7 +37,7 @@ Should work on iOS devices with and without a Home Button.
 Choose the device option to change the location of the navbar for the selected options (like the visibiliy option for cards in HA)
 You can select multiple options. If the option is selected the navbar will be at the bottom for the selected option.
 
-![image](https://github.com/user-attachments/assets/b9345779-673a-49be-8885-b088b95e2ea7)
+<img width="515" height="617" alt="image" src="https://github.com/user-attachments/assets/eaa2125e-48d7-41f4-b198-29ff4e0858c7" />
 
 
 ```yaml
@@ -45,6 +47,8 @@ Style:
   - tablet
   - desktop
   - wide
+global_mobile: true
+global_wide: false
 ```
 
 
