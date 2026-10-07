@@ -206,7 +206,20 @@ class HeaderPosition {
     }
   }
 
+  _updateViewTopPadding() {
+    const viewContainer =
+      this.huiRootElement?.querySelector("hui-view-container");
+    if (viewContainer) {
+      viewContainer.style.setProperty(
+        "padding-top",
+        "calc(max(var(--safe-area-inset-top, 0px), env(safe-area-inset-top, 0px)) + var(--view-container-padding-top, 0px))",
+        "important",
+      );
+    }
+  }
+
   styleHeaderDefault(element) {
+    this._updateViewTopPadding();
     if (element.style.top !== "auto" || element.style.bottom !== "0px") {
       element.style.setProperty("top", "auto", "important");
       element.style.setProperty("bottom", "0px", "important");
@@ -256,6 +269,7 @@ class HeaderPosition {
   }
 
   styleHeaderMinimal(element) {
+    this._updateViewTopPadding();
     const ua = navigator.userAgent;
     const isIos = /iPad|iPhone|iPod/.test(ua);
     const isIosWebViewOrStandalone =
@@ -433,6 +447,12 @@ class HeaderPosition {
       this._toolbar.removeEventListener("click", this._clickHandler, true);
       this._clickHandler = null;
       this._toolbar = null;
+    }
+
+    const viewContainer =
+      this.huiRootElement?.querySelector("hui-view-container");
+    if (viewContainer) {
+      viewContainer.style.removeProperty("padding-top");
     }
 
     let appHeader = this.huiRootElement?.querySelector(".header");
