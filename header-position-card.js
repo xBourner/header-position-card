@@ -289,6 +289,7 @@ class HeaderPosition {
       "important",
     );
     element.style.setProperty("right", "0", "important");
+    element.style.setProperty("width", "auto", "important");
     element.style.setProperty("padding", "0", "important");
     element.style.setProperty("margin", "0", "important");
     element.style.setProperty("background", "transparent", "important");
@@ -310,6 +311,7 @@ class HeaderPosition {
           .toolbar {
               background: var(--app-header-background-color, var(--primary-background-color)) !important;
               border-radius: 20px !important;
+              width: auto !important;
               margin: 4px 16px calc(4px + ${bottomInsetHalf}) 16px !important;
               border: none !important;
               box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
@@ -467,6 +469,7 @@ class HeaderPosition {
       appHeader.style.removeProperty("border-top");
       appHeader.style.removeProperty("left");
       appHeader.style.removeProperty("right");
+      appHeader.style.removeProperty("width");
       appHeader.style.removeProperty("background");
       appHeader.style.removeProperty("border");
       appHeader.style.removeProperty("box-shadow");
