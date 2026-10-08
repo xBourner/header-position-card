@@ -278,14 +278,13 @@ class HeaderPosition {
       ? "calc(env(safe-area-inset-bottom) * 0.5)"
       : "0px";
 
-    const sidebarWidth = this._getSidebarWidth();
-
     element.style.setProperty("top", "auto", "important");
     element.style.setProperty("bottom", "0px", "important");
     element.style.setProperty("position", "fixed", "important");
+    // Follows the sidebar when it is collapsed, expanded or hidden.
     element.style.setProperty(
       "left",
-      sidebarWidth > 0 ? `${sidebarWidth}px` : "0",
+      "var(--ha-sidebar-width, var(--mdc-drawer-width, 0px))",
       "important",
     );
     element.style.setProperty("right", "0", "important");
