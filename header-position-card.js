@@ -2,12 +2,30 @@ class HeaderPosition {
   constructor() {
     this.queryParams = new URLSearchParams(window.location.search);
     this.config = { Style: [] };
+    this.cardConfig = { Style: [] };
+    this.dashboardConfig = null;
+    this._dashboardHeader = null;
+    this._dashboardState = null;
+    this._dashboardTimer = null;
+    this._panelObserver = null;
+    this._observedPanel = null;
     this._observer = null;
     this._usingGlobal = false;
-    this._boundApply = this.applyGlobal.bind(this);
+    this._boundChange = this._onChange.bind(this);
+    this._boundCheck = this._scheduleDashboardCheck.bind(this);
   }
 
   setConfig(config) {
+    this.cardConfig = this._normalizeConfig(config);
+
+    // A dashboard with header_position ignores card configs.
+    if (this._readDashboardConfig()) return;
+
+    this.config = this.cardConfig;
+    this.applyChanges();
+  }
+
+  _normalizeConfig(config) {
     const newConfig = { ...config };
 
     if (newConfig.Style === undefined) {
@@ -29,8 +47,7 @@ class HeaderPosition {
       newConfig.Design = "default";
     }
 
-    this.config = newConfig;
-    this.applyChanges();
+    return newConfig;
   }
 
   applyChanges() {
@@ -41,15 +58,31 @@ class HeaderPosition {
       return;
     }
 
+    const { applyHeader, isGlobal } = this._matchBreakpoints(this.config);
+
+    if (applyHeader) {
+      if (isGlobal) {
+        this.activateGlobal();
+      } else {
+        this.deactivateGlobal();
+        this.applyHeaderPositionChanges();
+      }
+    } else {
+      this.deactivateGlobal();
+      this.resetHeader();
+    }
+  }
+
+  _matchBreakpoints(config) {
     const width = window.innerWidth;
     let applyHeader = false;
     let isGlobal = false;
 
     const checkGlobal = (bp) => {
-      return this.config[`global_${bp.toLowerCase()}`] === true;
+      return config[`global_${bp.toLowerCase()}`] === true;
     };
 
-    for (const bp of styles) {
+    for (const bp of config.Style) {
       const lowerBp = bp.toLowerCase();
       switch (lowerBp) {
         case "mobile":
@@ -77,7 +110,7 @@ class HeaderPosition {
           }
           break;
         case "custom":
-          if (width >= this.config.custom_width) {
+          if (width >= config.custom_width) {
             applyHeader = true;
             if (checkGlobal(lowerBp)) isGlobal = true;
           }
@@ -86,58 +119,154 @@ class HeaderPosition {
       }
     }
 
-    if (applyHeader) {
-      if (isGlobal) {
-        this.activateGlobal();
-      } else {
-        this.deactivateGlobal();
-        this.applyHeaderPositionChanges();
-      }
-    } else {
-      this.deactivateGlobal();
-      this.resetHeader();
-    }
+    return { applyHeader, isGlobal };
   }
 
   activateGlobal() {
-    if (!this._usingGlobal) {
-      this._usingGlobal = true;
-      window.addEventListener("location-changed", this._boundApply);
-      window.addEventListener("popstate", this._boundApply);
-      this.startObserver();
-    }
+    this._usingGlobal = true;
     this.applyGlobal();
   }
 
   deactivateGlobal() {
-    if (this._usingGlobal) {
-      this._usingGlobal = false;
-      window.removeEventListener("location-changed", this._boundApply);
-      window.removeEventListener("popstate", this._boundApply);
-      this.stopObserver();
-    }
+    this._usingGlobal = false;
   }
 
-  startObserver() {
+  listen() {
+    window.addEventListener("location-changed", this._boundChange);
+    window.addEventListener("popstate", this._boundChange);
+    window.addEventListener("resize", this._boundCheck);
+    this.startObserver();
+  }
+
+  startObserver(attempt = 0) {
     if (this._observer) return;
 
     const target = document
       .querySelector("home-assistant")
       ?.shadowRoot?.querySelector("home-assistant-main")?.shadowRoot;
-    if (!target) return;
+    if (!target) {
+      if (attempt < 50) {
+        setTimeout(() => this.startObserver(attempt + 1), 200);
+      }
+      return;
+    }
 
-    this._observer = new MutationObserver(() => {
-      this.applyGlobal();
-    });
-
+    this._observer = new MutationObserver(this._boundChange);
     this._observer.observe(target, { childList: true, subtree: true });
+    this._scheduleDashboardCheck();
   }
 
-  stopObserver() {
-    if (this._observer) {
-      this._observer.disconnect();
-      this._observer = null;
+  _onChange() {
+    if (this._usingGlobal && !this._readDashboardConfig()) {
+      this.applyGlobal();
     }
+    this._scheduleDashboardCheck();
+  }
+
+  get _lovelacePanel() {
+    return document
+      .querySelector("home-assistant")
+      ?.shadowRoot?.querySelector("home-assistant-main")
+      ?.shadowRoot?.querySelector("ha-panel-lovelace");
+  }
+
+  // Reads header_position from the root of the current dashboard config.
+  _readDashboardConfig(panel = this._lovelacePanel) {
+    const value = panel?.lovelace?.config?.header_position;
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      return null;
+    }
+
+    return this._normalizeConfig({
+      Style: value.style,
+      Design: value.design,
+      custom_width: value.custom_width,
+    });
+  }
+
+  _scheduleDashboardCheck() {
+    clearTimeout(this._dashboardTimer);
+    this._dashboardTimer = setTimeout(() => this._checkDashboard(), 50);
+  }
+
+  _checkDashboard(attempt = 0) {
+    const panel = this._lovelacePanel;
+    this._observePanel(panel);
+
+    const header = panel?.shadowRoot
+      ?.querySelector("hui-root")
+      ?.shadowRoot?.querySelector(".header");
+
+    // Dashboard still loading, or the raw configuration editor is open.
+    if (panel && (!panel.lovelace?.config || !header)) {
+      if (attempt < 20) {
+        this._dashboardTimer = setTimeout(
+          () => this._checkDashboard(attempt + 1),
+          250,
+        );
+      }
+      return;
+    }
+
+    const dashboardConfig = panel ? this._readDashboardConfig(panel) : null;
+    if (!dashboardConfig) {
+      if (this.dashboardConfig) this._leaveDashboard(header);
+      return;
+    }
+
+    const { applyHeader } = this._matchBreakpoints(dashboardConfig);
+    const sidebarWidth =
+      dashboardConfig.Design === "minimal" ? this._getSidebarWidth() : 0;
+    const state = JSON.stringify([dashboardConfig, applyHeader, sidebarWidth]);
+    if (header === this._dashboardHeader && state === this._dashboardState) {
+      return;
+    }
+
+    if (header === this._dashboardHeader) this.resetHeader();
+
+    this.dashboardConfig = dashboardConfig;
+    this._dashboardHeader = header;
+    this._dashboardState = state;
+    this.config = dashboardConfig;
+    this.applyChanges();
+  }
+
+  _leaveDashboard(header) {
+    const previousHeader = this._dashboardHeader;
+    this.dashboardConfig = null;
+    this._dashboardHeader = null;
+    this._dashboardState = null;
+    this.config = this.cardConfig;
+
+    if (header && header === previousHeader) {
+      // header_position was removed from this dashboard.
+      this.resetHeader();
+    } else if (this._toolbar && previousHeader?.contains(this._toolbar)) {
+      this._toolbar.classList.remove("collapsed", "expanded");
+      this._removeScrollCollapse();
+    }
+
+    // Bring back a global card config that the dashboard config overruled.
+    if (this._matchBreakpoints(this.cardConfig).isGlobal) {
+      this.applyChanges();
+    }
+  }
+
+  // The panel renders hui-root in its own shadow root, which the main
+  // observer cannot see (loading, closing the raw configuration editor).
+  _observePanel(panel) {
+    if (panel === this._observedPanel) return;
+
+    if (this._panelObserver) {
+      this._panelObserver.disconnect();
+      this._panelObserver = null;
+    }
+    this._observedPanel = null;
+    if (!panel?.shadowRoot) return;
+
+    this._observedPanel = panel;
+    this._panelObserver = new MutationObserver(this._boundCheck);
+    this._panelObserver.observe(panel.shadowRoot, { childList: true });
   }
 
   applyGlobal() {
@@ -440,7 +569,7 @@ class HeaderPosition {
     this.styleHeader(appHeader);
   }
 
-  resetHeader() {
+  _removeScrollCollapse() {
     if (this._scrollListener) {
       window.removeEventListener("scroll", this._scrollListener);
       this._scrollListener = null;
@@ -450,6 +579,10 @@ class HeaderPosition {
       this._clickHandler = null;
       this._toolbar = null;
     }
+  }
+
+  resetHeader() {
+    this._removeScrollCollapse();
 
     const viewContainer =
       this.huiRootElement?.querySelector("hui-view-container");
@@ -524,6 +657,7 @@ class HeaderPosition {
 }
 
 window.headerPosition = new HeaderPosition();
+window.headerPosition.listen();
 
 class HeaderPositionCard extends HTMLElement {
   setConfig(config) {
