@@ -41,6 +41,7 @@ By default, Home Assistant locks the navigation header to the top of the screen.
 
 - 📱 **Device-Specific Positioning** - Move the header to the bottom only on specific devices (e.g., Mobile only, Tablet only, or Desktop).
 - 🌍 **Global Mode** - Apply the custom header position to *all* dashboards at once, rather than on a per-dashboard basis.
+- 🗂️ **Dashboard-Wide Config** - Set the header position once in the dashboard configuration, so it works on every view without adding the card to each one.
 - 🍏 **iOS Compatible** - Carefully optimized to look native and respect safe areas on iOS devices (both with and without a Home Button).
 - 👻 **Invisible Helper** - This card does not display anything on your actual dashboard; it only runs in the background. It is solely visible when you open the Edit mode.
 - 🧠 **100% GUI Editor Ready** - Effortlessly configure the entire card through the visual editor without needing to write YAML.
@@ -98,6 +99,29 @@ Style:
 global_mobile: true
 global_wide: false
 ```
+
+### Dashboard-Wide Configuration
+The card only does something once a view containing it has been opened. To set the header position for a whole dashboard, no matter which view you open first, add `header_position` at the top level of the dashboard configuration. You can do this in the dashboard's **Raw configuration editor** (Edit dashboard → three dots → Raw configuration editor), or in the YAML file for YAML-mode dashboards.
+
+```yaml
+header_position:
+  style:
+    - mobile
+    - tablet
+  design: minimal
+views:
+  - title: Home
+```
+
+- `style` - The breakpoints, same as the card: `mobile`, `tablet`, `desktop`, `wide` and `custom`. An empty list keeps the header at the top on this dashboard.
+- `design` - `default` or `minimal`.
+- `custom_width` - Minimum width in px for `custom`.
+
+Note that these keys are lowercase. The `global_` options are not used here.
+
+A dashboard with `header_position` ignores any Header Position Card, including one in global mode on another dashboard. Dashboards without it work as before.
+
+Changes saved in the raw configuration editor apply when you close the editor. Changes made elsewhere, for example on another device or in a YAML file, apply after the next navigation or a page reload.
 
 ## ❤️ Support My Work
 
